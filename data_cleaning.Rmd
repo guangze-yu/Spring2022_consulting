@@ -1,0 +1,38 @@
+---
+title: "data_cleaning"
+author: "Guangze Yu"
+date: "2/6/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyr)
+disease <- read.csv("~/Downloads/Disease Severity and Meaning Making in SLOS_February 1, 2022_16.39.csv", header=TRUE,na.strings=c("","NA"))
+disease = disease[-1:-2,]
+
+disease <- disease %>% select(-StartDate,-EndDate,-Status,-IPAddress,-Duration..in.seconds.,-RecordedDate,-ResponseId,-RecipientFirstName,-RecipientEmail,-RecipientLastName,-ExternalReference,-LocationLatitude,-LocationLongitude,-DistributionChannel,-UserLanguage,-Q_RecaptchaScore) %>% mutate(id=row_number())
+
+# Remove rows: process < 10 & severity_score =0
+anormal_data <- disease %>% 
+  filter(as.numeric(as.character(Progress)) < 10 & as.numeric(as.character(SC0))==0)
+# Subset for text-only dataset (Q33,34,35 find the meaning related)
+meaning <- disease %>% select(Q33,Q34,Q35)
+# The subset after remove anomal rows based on process and severity_score
+normal_data <- disease %>% filter(!id %in% anormal_data$id) %>% as.data.frame()
+
+# manually change the all age with unit year. 
+normal_data$Q8 = as.character(normal_data$Q8)
+normal_data[7, 16] = 2.5
+normal_data[72,16] = 0.75
+normal_data[70,16] = 3.92
+normal_data[64,16] = 3.17
+normal_data[8,16] = 0.92
+normal_data[74,16] = 1.5
+normal_data[54,16] = 26
+
+####### whether we should exclude 18 
+# normal_data %>% filter(as.numeric(Q8) >18)
+
+```
+
