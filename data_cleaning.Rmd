@@ -8,7 +8,7 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(tidyr)
-disease <- read.csv("~/Downloads/Disease Severity and Meaning Making in SLOS_February 1, 2022_16.39.csv", header=TRUE,na.strings=c("","NA"))
+disease <- read.csv("Downloads/Disease Severity and Meaning Making in SLOS_February 1, 2022_16.39.csv", header=TRUE,na.strings=c("","NA"))
 disease = disease[-1:-2,]
 
 disease <- disease %>% select(-StartDate,-EndDate,-Status,-IPAddress,-Duration..in.seconds.,-RecordedDate,-ResponseId,-RecipientFirstName,-RecipientEmail,-RecipientLastName,-ExternalReference,-LocationLatitude,-LocationLongitude,-DistributionChannel,-UserLanguage,-Q_RecaptchaScore) %>% mutate(id=row_number())
@@ -31,8 +31,20 @@ normal_data[8,16] = 0.92
 normal_data[74,16] = 1.5
 normal_data[54,16] = 26
 
+#Convert severity score to 100-point scale.
+normal_data <- normal_data %>% mutate(SC100 = as.numeric(SC0)/20*100) 
+
+#Calculate QOL.
+QOL <- function(x){
+  x <-  
+    ifelse(x==1,100,ifelse(x==2,75,ifelse(x==3,50,ifelse(x==4,25,ifelse(x==5,0," ")))))
+}
+normal_data[,36:58] <- QOL(normal_data[,36:58])
+
+normal_data[,36:58] <- apply(normal_data[,36:58],2,function(x) as.numeric(x))
+
+normal_data$QOL <- apply(normal_data[,36:58], 1, mean, na.rm = TRUE)
 ####### whether we should exclude 18 
 # normal_data %>% filter(as.numeric(Q8) >18)
-
 ```
 
