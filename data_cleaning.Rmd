@@ -8,6 +8,7 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(tidyr)
+library(ggplot2)
 disease <- read.csv("Downloads/Disease Severity and Meaning Making in SLOS_February 1, 2022_16.39.csv", header=TRUE,na.strings=c("","NA"))
 disease = disease[-1:-2,]
 
@@ -45,6 +46,21 @@ normal_data[,36:58] <- apply(normal_data[,36:58],2,function(x) as.numeric(x))
 
 normal_data$QOL <- apply(normal_data[,36:58], 1, mean, na.rm = TRUE)
 ####### whether we should exclude 18 
-# normal_data %>% filter(as.numeric(Q8) >18)
+normal_data <- normal_data %>% filter(as.numeric(Q8) <18)
+
+length(is.null(normal_data$Q28_2))
+
+
+library(dplyr)
+
+normal_data <- normal_data %>% rowwise() %>% mutate(missing_detectQOL=sum(is.na(c_across(Q28_1:Q31_5))))
+
+# more than 50% should not be counted 
+# if missing_detectQOL > 23/2, this row don't hava life-quality score. 
+table(normal_data$missing_detectQOL)
+table(normal_data$Q8)
+
+
+
 ```
 
