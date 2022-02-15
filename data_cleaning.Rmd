@@ -9,6 +9,7 @@ output: html_document
 library(tidyverse)
 library(tidyr)
 library(ggplot2)
+library(dplyr)
 disease <- read.csv("Downloads/Disease Severity and Meaning Making in SLOS_February 1, 2022_16.39.csv", header=TRUE,na.strings=c("","NA"))
 disease = disease[-1:-2,]
 
@@ -33,8 +34,8 @@ normal_data[74,16] = 1.5
 normal_data[54,16] = 26
 
 #Convert severity score to 100-point scale.
-normal_data <- normal_data %>% mutate(SC100 = as.numeric(SC0)/20*100) 
-
+#normal_data <- normal_data %>% mutate(SC100 = as.numeric(SC0)/20*100) 
+normal_data <- normal_data %>% rowwise() %>% mutate(missing_detectQOL=sum(is.na(c_across(Q28_1:Q31_5))))
 #Calculate QOL.
 QOL <- function(x){
   x <-  
@@ -51,8 +52,6 @@ normal_data <- normal_data %>% filter(as.numeric(Q8) <18)
 length(is.null(normal_data$Q28_2))
 
 
-library(dplyr)
-
 normal_data <- normal_data %>% rowwise() %>% mutate(missing_detectQOL=sum(is.na(c_across(Q28_1:Q31_5))))
 
 # more than 50% should not be counted 
@@ -60,7 +59,21 @@ normal_data <- normal_data %>% rowwise() %>% mutate(missing_detectQOL=sum(is.na(
 table(normal_data$missing_detectQOL)
 table(normal_data$Q8)
 
+a <- normal_data %>% filter(missing_detectQOL <=10) 
 
+fit1 <- lm(QOL ~ as.numeric(as.character(SC0)), data = a)
+summary(fit1)
+plot(as.numeric(as.character(a$SC0)),a$QOL,type="p")
+abline(fit1)
 
+over_4 <- a %>% filter(as.numeric(as.character(SC0))>=4) %>% select(SC0,QOL,id) %>% mutate(group = c("1"))
+less_4 <- a %>% filter(as.numeric(as.character(SC0))<4) %>%
+select(SC0,QOL,id) %>% mutate(group = c("2"))
+total <- rbind(over_4,less_4)
+
+t.test(spending ~ city, var.equal = TRUE)
+
+t.test(QOL ~ group, data = total,
+        var.equal = TRUE, alternative = "less")
 ```
 
