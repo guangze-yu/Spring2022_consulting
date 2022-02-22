@@ -75,5 +75,101 @@ t.test(spending ~ city, var.equal = TRUE)
 
 t.test(QOL ~ group, data = total,
         var.equal = TRUE, alternative = "less")
+
 ```
+
+```{r}
+# text analysis
+# Q33 the description of children from parents
+library(sentimentr)
+library(stringi)
+library(tidytext)
+library(stringr)
+q33_word <- stri_extract_all_regex(a$Q33, "\\w+") 
+q33_word <- q33_word[-26] 
+
+b <- a$Q33 %>%unlist() %>% as.data.frame()
+names(b)[names(b) == '.'] <- 'text'
+b$text <- as.character(b$text)
+
+tidy_data <- b %>% 
+  mutate(patient_id = as.character(a$id)) %>% 
+  ungroup() %>%
+  unnest_tokens(word,text)
+
+most_frequency_word <-tidy_data %>%
+ inner_join(get_sentiments("nrc")) %>%
+ count(word, sentiment,sort = TRUE)
+
+frequency_sentiment <- tidy_data %>%
+  right_join(get_sentiments("nrc")) %>% 
+  filter(!is.na(sentiment),!is.na(patient_id)) %>%
+  group_by(patient_id)%>%
+  arrange(as.numeric(patient_id))
+```
+
+
+To more specific of sentiment analysis, we try to include a word dictionary which have more than positive and negative sentiment. We choose "NRC". The specific sentiment emotional list reference website: NRC dictionary.
+https://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm
+
+Eight basic emotions (anger, fear, anticipation, trust, surprise, sadness, joy, and disgust) and two sentiments (negative and positive)
+So, for some description like "strong", although under our background, we assume this is a positive word but when using "nrc" dictionary to analyze. We cannot find out. 
+However, based on the frequency of each type of sentiment appear for each patient, we can have an outline of sentiment of this patient. 
+The dataframe named 'most_frequency_word' reflects which word appear the most among our 34 patients. 
+The dataframe named 'frequency_sentiment' reflects how much sentiment word for each patient. 
+
+
+
+```{r}
+# Q34 text analysis
+q_34 <- a %>% select(Q34,id)
+q_34$Q34 <- as.character(q_34$Q34)
+tidy_34 <- q_34%>%
+  ungroup() %>%
+  unnest_tokens(word, Q34)
+
+sentiment_score_34 <- tidy_34 %>%
+  inner_join(get_sentiments("afinn")) %>%
+  group_by(id) %>%
+  summarise(sentiment = sum(value, na.rm = TRUE))
+```
+
+
+To get the sentiment score of each patient, we use another dictionary called "afinn", which will give a score to each word. The specific link for this dictionary is 'https://github.com/fnielsen/afinn/tree/master/afinn/data'. Then, we try to sum up each patient's score. More positive large means more positive sentiment. 
+
+However, there is only 25 patients who have sentiment score. So, it is useless to plot the relationship between sentiment score and severity score. The limitation of this analysis is that there is not a "perfect" dictionary to match each word. All in all, the trend is reliable. So, we can conclude that most patients have positive sentiment. 
+
+
+```{r}
+#q32
+q_32 <- a %>% select(Q32,Q32_4_TEXT,id)
+q_32$Q32 <- as.character(q_32$Q32)
+q_32$Q32_4_TEXT <- as.character(q_32$Q32_4_TEXT)
+
+c <- separate_rows(q_32, Q32, sep = ",")
+table(c$Q32)
+# the frequency of choices appeared.
+```
+
+Don't know to analyze Q32.
+
+
+```{r}
+# Q35 text analysis
+q_35 <- a %>% select(Q35,id)
+q_35$Q35 <- as.character(q_35$Q35)
+tidy_35 <- q_35%>%
+  ungroup() %>%
+  unnest_tokens(word, Q35)
+
+sentiment_score_35 <- tidy_35 %>%
+  inner_join(get_sentiments("afinn")) %>%
+  group_by(id) %>%
+  summarise(sentiment = sum(value, na.rm = TRUE))
+```
+Same procedure for Q35 and Q34.
+
+
+
+
 
