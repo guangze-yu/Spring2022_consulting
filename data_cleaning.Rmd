@@ -71,7 +71,7 @@ less_4 <- a %>% filter(as.numeric(as.character(SC0))<4) %>%
 select(SC0,QOL,id) %>% mutate(group = c("2"))
 total <- rbind(over_4,less_4)
 
-t.test(spending ~ city, var.equal = TRUE)
+# t.test(spending ~ city, var.equal = TRUE)
 
 t.test(QOL ~ group, data = total,
         var.equal = TRUE, alternative = "less")
@@ -106,6 +106,30 @@ frequency_sentiment <- tidy_data %>%
   filter(!is.na(sentiment),!is.na(patient_id)) %>%
   group_by(patient_id)%>%
   arrange(as.numeric(patient_id))
+
+#analyze the relationship between sentiment and Disease severity and QOL
+afinn <- tidy_data %>%
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(patient_id)%>%
+  summarise(sentiment = sum(value)) %>% 
+  rename(id=patient_id) %>% 
+   mutate(id = as.integer(afinn$id))%>% 
+  inner_join(a,by="id")
+fit2 <- lm(sentiment ~ QOL, data = afinn)
+summary(fit2)
+plot(afinn$QOL,afinn$sentiment,type="p")
+abline(fit2)
+# There seems to be a negative relationship between QOL and sentiment, but not significant
+
+fit3 <- lm(sentiment ~ as.numeric(SC0), data = afinn)
+summary(fit3)
+plot(as.numeric(afinn$SC0),afinn$sentiment,type="p")
+abline(fit3)
+#There seems to be a positive relationship between SC0 and sentiment, but not significant
+
+#Apply linear regression model with QOL and SC0 as predictors, and the coefficients are not significant.
+fit4 <- lm(sentiment ~ as.numeric(SC0)+ QOL, data = afinn)
+summary(fit4)
 ```
 
 
@@ -118,7 +142,7 @@ However, based on the frequency of each type of sentiment appear for each patien
 The dataframe named 'most_frequency_word' reflects which word appear the most among our 34 patients. 
 The dataframe named 'frequency_sentiment' reflects how much sentiment word for each patient. 
 
-
+We also used the "afinn" lexicon, which put positive or negative values to each word. We regressed sentiment score on QOL and severity score, and we couldn't find any relationship between them. 
 
 ```{r}
 # Q34 text analysis
