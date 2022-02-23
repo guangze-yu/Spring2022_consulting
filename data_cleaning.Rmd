@@ -112,7 +112,8 @@ afinn <- tidy_data %>%
   inner_join(get_sentiments("afinn")) %>% 
   group_by(patient_id)%>%
   summarise(sentiment = sum(value)) %>% 
-  rename(id=patient_id) %>% 
+  rename(id=patient_id) 
+afinn <- afinn %>% 
    mutate(id = as.integer(afinn$id))%>% 
   inner_join(a,by="id")
 fit2 <- lm(sentiment ~ QOL, data = afinn)
@@ -173,9 +174,10 @@ q_32$Q32_4_TEXT <- as.character(q_32$Q32_4_TEXT)
 c <- separate_rows(q_32, Q32, sep = ",")
 table(c$Q32)
 # the frequency of choices appeared.
+
+ggplot(c, aes(Q32)) +  geom_bar(fill = "#0073C2FF")+ geom_text(stat='count', aes(label=..count..),y = 2, color="yellow") 
 ```
 
-Don't know to analyze Q32.
 
 
 ```{r}
@@ -193,7 +195,30 @@ sentiment_score_35 <- tidy_35 %>%
 ```
 Same procedure for Q35 and Q34.
 
+```{r}
+# Analyze demographcis data
+demographics <- a %>% select(Q11,Q12,Q13,id,SC0,QOL)
+ggplot(demographics,aes(Q11))+geom_bar(fill="blue")+ geom_text(stat='count', aes(label=..count..),y = 2)
+ggplot(demographics,aes(Q12))+geom_bar(fill="blue")+ geom_text(stat='count', aes(label=..count..),y = 2)
+demographics <- transform(demographics, Q13= factor(Q13, levels = c("1", "2","4","5","6","7","8","10","11","12","13")))
+ggplot(demographics,aes(Q13))+geom_bar(fill="blue")+ geom_text(stat='count', aes(label=..count..),y = 0.5)
 
+demographics$Q13 <- ifelse(demographics$Q13==13,NA,demographics$Q13)
+demographics <- demographics %>% mutate_at(vars(Q12), as.factor)
+demographics <- demographics %>% mutate_at(vars(Q13), as.integer)
+
+fit6 <- lm(QOL ~ Q13, data = demographics)
+summary(fit6)
+plot(demographics$Q13,demographics$QOL,type="p")
+abline(fit6)
+
+demographics <- transform(demographics, Q12= factor(Q12, levels = c("1", "2","3")))
+fit7 <- lm(QOL ~ Q12, data = demographics)
+summary(fit7)
+plot(demographics$Q12,demographics$QOL,type="p")
+
+
+```
 
 
 
