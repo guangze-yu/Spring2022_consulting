@@ -157,6 +157,29 @@ sentiment_score_34 <- tidy_34 %>%
   inner_join(get_sentiments("afinn")) %>%
   group_by(id) %>%
   summarise(sentiment = sum(value, na.rm = TRUE))
+
+sentiment_34 <- sentiment_score_34 %>% 
+   mutate(id = as.integer(id))%>% 
+   inner_join(a,by="id")
+  
+  
+fit5 <- lm(sentiment ~ QOL,data=sentiment_34)
+summary(fit5)
+plot(sentiment_34$QOL,sentiment_34$sentiment,type="p")
+abline(fit5)
+# There seems to be a negative relationship between QOL and sentiment, but not significant
+
+fit6 <- lm(sentiment ~ as.numeric(SC0), data = sentiment_34)
+summary(fit6)
+plot(as.numeric(sentiment_34$SC0),sentiment_34$sentiment,type="p")
+abline(fit6)
+#There seems to be a positive relationship between SC0 and sentiment, but not significant
+
+#Apply linear regression model with QOL and SC0 as predictors, and the coefficients are not significant.
+fit7 <- lm(sentiment ~ as.numeric(SC0)+ QOL, data = sentiment_34)
+summary(fit7)
+
+
 ```
 
 
@@ -175,7 +198,7 @@ c <- separate_rows(q_32, Q32, sep = ",")
 table(c$Q32)
 # the frequency of choices appeared.
 
-ggplot(c, aes(Q32)) +  geom_bar(fill = "#0073C2FF")+ geom_text(stat='count', aes(label=..count..),y = 2, color="yellow") 
+ggplot(c, aes(Q32)) +  geom_bar(fill = "#0073C2FF")+ geom_text(stat='count', aes(label=..count..),y = 2, color="yellow")  + scale_x_discrete(labels=c("1" = "Mental strain", "2" = "Physical strain","3" = "relationship strain","4" = "NA", "5"= "Financial strain"))
 ```
 
 
@@ -192,6 +215,27 @@ sentiment_score_35 <- tidy_35 %>%
   inner_join(get_sentiments("afinn")) %>%
   group_by(id) %>%
   summarise(sentiment = sum(value, na.rm = TRUE))
+
+sentiment_35 <- sentiment_score_35 %>% 
+   mutate(id = as.integer(id))%>% 
+   inner_join(a,by="id")
+
+fit8 <- lm(sentiment ~ QOL,data=sentiment_35)
+summary(fit8)
+plot(sentiment_35$QOL,sentiment_35$sentiment,type="p")
+abline(fit8)
+# There seems to be a negative relationship between QOL and sentiment, but not significant
+
+fit9 <- lm(sentiment ~ as.numeric(SC0), data = sentiment_35)
+summary(fit9)
+plot(as.numeric(sentiment_35$SC0),sentiment_35$sentiment,type="p")
+abline(fit9)
+#There seems to be a positive relationship between SC0 and sentiment, but not significant
+
+#Apply linear regression model with QOL and SC0 as predictors, and the coefficients are not significant.
+fit10 <- lm(sentiment ~ as.numeric(SC0)+ QOL, data = sentiment_34)
+summary(fit7)
+
 ```
 Same procedure for Q35 and Q34.
 
