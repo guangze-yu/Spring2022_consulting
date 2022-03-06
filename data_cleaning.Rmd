@@ -63,14 +63,49 @@ a <- normal_data %>% filter(missing_detectQOL <=10)
 
 fit1 <- lm(QOL ~ as.numeric(as.character(SC0)), data = a)
 summary(fit1)
-plot(as.numeric(as.character(a$SC100)),a$QOL,type="p", xlab = "Severity Score", ylab = "QOL Score", main = "Severity and QOL of patients",cex.lab=1.5, cex.axis=1, cex.main=1.5, cex.sub=1)
+plot(as.numeric(as.character(a$SC100)),a$QOL,type="p", xlab = "Severity Score", ylab = "QOL Score", main = "Figure 1. Severity and QOL of patients",cex.lab=1.5, cex.axis=1, cex.main=1.5, cex.sub=1)
 # text(0.5,83,expression(R^2 == 0.23),cex=1.5)
 # abline(fit1)
 
+##Check the assumption of Pearson correlation
+#Check normality
+library(ggpubr)
+par(mfrow=c(1,2)) 
+ggdensity(a$SC100, 
+          main = "Density plot of Severity Score",
+          xlab = "Severity Score")
+ggqqplot(a$SC100)
+shapiro.test(a$SC100)
+ggdensity(a$QOL, 
+          main = "Density plot of QOL",
+          xlab = "QOL Score")
+ggqqplot(a$QOL)
+shapiro.test(a$QOL)
+cor(a$QOL,a$SC100, method="kendall")
+cor.test(a$QOL,a$SC100, method="kendall",exact=FALSE)
+
+#Check homogeneity in variances
 over_4 <- a %>% filter(as.numeric(as.character(SC0))>=4) %>% select(SC0,QOL,id) %>% mutate(group = c("1"))
 less_4 <- a %>% filter(as.numeric(as.character(SC0))<4) %>%
 select(SC0,QOL,id) %>% mutate(group = c("2"))
 total <- rbind(over_4,less_4)
+
+var.test(QOL~group, data = total)
+
+#Check normality of QOL in each severity group
+g1 <- total[total$group=="1",]
+g2 <- total[total$group=="2",]
+
+ggdensity(g1$QOL, 
+          main = "Density plot of QOL Score in classical severity group",
+          xlab = "QOL Score")
+ggqqplot(g1$QOL)
+shapiro.test(g1$QOL)
+ggdensity(g2$QOL, 
+          main = "Density plot of QOL Score in mild severity group",
+          xlab = "QOL Score")
+ggqqplot(g2$QOL)
+shapiro.test(g2$QOL)
 
 # t.test(spending ~ city, var.equal = TRUE)
 
@@ -191,7 +226,8 @@ However, there is only 25 patients who have sentiment score. So, it is useless t
 
 ```{r}
 #q32
-q_32 <- a %>% select(Q32,Q32_4_TEXT,id,SC0)
+q_32 <- a %>% select(Q32,Q32_4_TEXT,id,SC100)
+q_32$SC100 <- as.factor(q_32$SC100)
 q_32$Q32 <- as.character(q_32$Q32)
 q_32$Q32_4_TEXT <- as.character(q_32$Q32_4_TEXT)
 
@@ -207,16 +243,17 @@ table(c$Q32)
 # aggregate(freq~SC0+Q32,data=c,sum)
 
 d <- c %>% 
-  group_by(SC0,Q32) %>%
+  group_by(SC100,Q32) %>%
   summarise(count = length(Q32))
-e <- q_32 %>% group_by(SC0) %>% summarise(n=length(SC0))
-f <- inner_join(d,e,by="SC0") %>% mutate(percentage=count/n*100)
+e <- q_32 %>% group_by(SC100) %>% summarise(n=length(SC100))
+f <- inner_join(d,e,by="SC100") %>% mutate(percentage=count/n*100)
 
 #plot
 
 ggplot(c, aes(Q32)) +  geom_bar(fill="blue")+ geom_text(stat='count', aes(label=..count..),y = 2, color="yellow") + scale_x_discrete(labels=c("1" = "Mental strain", "2" = "Physical strain","3" = "Relationship strain","4" = "Others", "5"= "Financial strain"))
 
-ggplot(f, aes(x= Q32, fill = SC0, y = count)) +
+ggplot(f, aes(x= Q32, fill = SC100, y = count)) +
+  labs(title = "Strains and severity", x = "Types of strain", y = "The number of participants with a strain", fill = "Severity Score") +
   geom_col() +
   geom_text(aes(label = paste(count)), 
                 lineheight = 0.8,color="yellow",
