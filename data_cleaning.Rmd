@@ -253,7 +253,7 @@ f <- inner_join(d,e,by="SC100") %>% mutate(percentage=count/n*100)
 ggplot(c, aes(Q32)) +  geom_bar(fill="blue")+ geom_text(stat='count', aes(label=..count..),y = 2, color="yellow") + scale_x_discrete(labels=c("1" = "Mental strain", "2" = "Physical strain","3" = "Relationship strain","4" = "Others", "5"= "Financial strain"))
 
 ggplot(f, aes(x= Q32, fill = SC100, y = count)) +
-  labs(title = "Strains and severity", x = "Types of strain", y = "The number of participants with a strain", fill = "Severity Score") +
+  labs(title = "Strains and Severity Score", x = "Types of strain", y = "The number of participants with a strain", fill = "Severity Score") +
   geom_col() +
   geom_text(aes(label = paste(count)), 
                 lineheight = 0.8,color="yellow",
