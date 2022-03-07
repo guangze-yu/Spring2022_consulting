@@ -329,6 +329,12 @@ demographics <- transform(demographics, Q12= factor(Q12, levels = c("1", "2","3"
 fit7 <- lm(QOL ~ Q12, data = demographics)
 summary(fit7)
   plot(demographics$Q12,demographics$QOL,type="p", xlab = "location", ylab="QOL score")
+  ggplot(demographics) + 
+  geom_boxplot(aes(factor(Q12), QOL)) + 
+  scale_x_discrete(labels = c('urban','suburban','rural'))+
+    labs(title = "QOL score and Location",
+   x = "Location",
+   y = "QOL score") 
 
 ```
 
